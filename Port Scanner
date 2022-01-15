@@ -1,0 +1,82 @@
+import pyfiglet
+import socket
+import logging
+from datetime import datetime
+from tqdm import tqdm
+
+# creates config for logging file
+logging.basicConfig(
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+    format="%(asctime)s %(message)s",
+    handlers=[logging.FileHandler("portscan.log"), logging.StreamHandler()],
+)
+# create list for open ports
+
+openPorts = []
+closedPorts = []
+
+ascii_banner = pyfiglet.figlet_format("GAMBA'S PORT SCANNER")
+print(ascii_banner)
+
+try:
+    start_time = datetime.now()
+    # Defining a target
+    hostname = input("Enter a host to scan: ")
+    target = socket.gethostbyname(hostname)
+
+    # Add Banner
+    print("-" * 50)
+    print("Scanning Target: " + target)
+    print("Scanning started at:" + str(datetime.now()))
+    print("-" * 50)
+
+    # will scan ports between 1 to 1025
+    # progress bar
+    for port in tqdm(range(1, 1026)):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        socket.setdefaulttimeout(0.05)
+
+        result = s.connect_ex((target, port))
+        if result == 0:
+            openPorts.append(port)
+
+        else:
+            closedPorts.append(port)
+
+        s.close()
+
+except KeyboardInterrupt:
+    print("You stopped the scan")
+    key = "You stopped the scan"
+    logging.info(key)
+
+
+except socket.gaierror:
+    print("Hostname could not be resolved. Exiting")
+    host = "Hostname could not be resolved. Exiting"
+    logging.info(host)
+
+
+except socket.error:
+    print("Couldn't connect to server")
+    noconnect = "Couldn't connect to server"
+    logging.info(noconnect)
+
+
+end_time = datetime.now()
+
+print("Scanning started at:{0}".format(str(end_time)))
+print("-" * 50)
+
+total = end_time - start_time
+
+logging.info("Start time: {}".format(str(start_time)))
+
+logging.info("End time: {}".format(str(end_time)))
+
+logging.info("Time elapsed: {}".format(str(total)))
+
+logging.info("Open Ports: {}".format(openPorts))
+
+logging.info("Closed Ports: {}".format(closedPorts))
